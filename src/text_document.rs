@@ -107,12 +107,17 @@ impl FullTextDocument {
         self.version = version;
     }
 
-    /// document's language id
+    /// Document's language id
     pub fn language_id(&self) -> &str {
         &self.language_id
     }
 
-    /// get document content
+    /// Document's version
+    pub fn version(&self) -> i32 {
+        self.version
+    }
+
+    /// Get document content
     ///
     /// # Examples
     ///
@@ -144,16 +149,16 @@ impl FullTextDocument {
         }
     }
 
-    /// a amount of document content line
-    fn line_count(&self) -> u32 {
+    /// A amount of document content line
+    pub fn line_count(&self) -> u32 {
         self.line_offsets
             .len()
             .try_into()
             .expect("The number of lines of text passed in is too long")
     }
 
-    /// document content len
-    fn content_len(&self) -> u32 {
+    /// The len of the document content
+    pub fn content_len(&self) -> u32 {
         self.content
             .chars()
             .count()
@@ -323,6 +328,7 @@ mod tests {
     #[test]
     fn test_update_part_content() {
         let mut text_document = full_text_document();
+        assert_eq!(text_document.version(), 2);
         let new_text = String::from("xx\ny");
         let range = Range {
             start: Position {
@@ -344,6 +350,7 @@ mod tests {
         );
 
         assert_eq!(&text_document.content, "he\nxx\ny\nworld");
-        assert_eq!(text_document.line_offsets, vec![0, 3, 6, 8])
+        assert_eq!(text_document.line_offsets, vec![0, 3, 6, 8]);
+        assert_eq!(text_document.version(), 1)
     }
 }

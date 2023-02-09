@@ -1,6 +1,9 @@
 name: Cargo Build & Test
+
 on:
   push:
+    branches:
+      - main
     paths-ignore:
       - ".gitignore"
       - "README.md"
@@ -14,9 +17,9 @@ jobs:
     name: Test on ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         toolchain:
-          - nightly
+          - nightly-2022-11-03
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3

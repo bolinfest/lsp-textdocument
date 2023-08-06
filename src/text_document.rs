@@ -628,4 +628,69 @@ mod tests {
             1,
         );
     }
+
+    #[test]
+    fn test_line_offsets() {
+        let mut text_document = full_text_document();
+        text_document.update(
+            &[TextDocumentContentChangeEvent {
+                range: Some(Range {
+                    start: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                }),
+                range_length: None,
+                text: "0:1332533\n0:1332534\n0:1332535\n0:1332536\n".to_string(),
+            }],
+            1,
+        );
+        assert_eq!(text_document.line_offsets[0..4], vec!(0, 10, 20, 30));
+
+        text_document.update(
+            &[
+                TextDocumentContentChangeEvent { range: Some(Range { start: Position { line: 1, character: 10 }, end: Position { line: 2, character: 10 } }), range_length: None, text: "1:6188912\n1:6188913\n1:6188914\n1:6188915\n1:6188916\n1:6188917\n1:6188918\n1:6188919\n1:6188920\n".to_string() },
+            ],
+            2
+        );
+        assert!(text_document
+            .get_content(None)
+            .to_string()
+            .starts_with("0:1332533\n0:1332534\n1:6188912\n1:6188913\n"));
+        // Apparently it is vec!(0, 10, 30, 40) instead?
+        assert_eq!(text_document.line_offsets[0..4], vec!(0, 10, 20, 30));
+
+        // Additional updates to test...
+
+        text_document.update(
+            &[
+                TextDocumentContentChangeEvent { range: Some(Range { start: Position { line: 9, character: 10 }, end: Position { line: 9, character: 10 } }), range_length: None, text: "2:5790402\n2:5790403\n2:5790404\n2:5790405\n2:5790406\n2:5790407\n2:5790408\n2:5790409\n".to_string() },
+            ],
+            3
+        );
+        assert_eq!(text_document.line_offsets[0..4], vec!(0, 10, 20, 30));
+
+        text_document.update(
+            &[TextDocumentContentChangeEvent {
+                range: Some(Range {
+                    start: Position {
+                        line: 5,
+                        character: 10,
+                    },
+                    end: Position {
+                        line: 12,
+                        character: 10,
+                    },
+                }),
+                range_length: None,
+                text: "3:4188666\n3:4188667\n3:4188668\n3:4188669\n3:4188670\n".to_string(),
+            }],
+            4,
+        );
+        assert_eq!(text_document.line_offsets[0..4], vec!(0, 10, 20, 30));
+    }
 }

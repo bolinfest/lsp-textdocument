@@ -78,20 +78,12 @@ impl FullTextDocument {
                         start.line, start.character, start_offset,
                         end.line, end.character, end_offset
                     );
-                    let (start_slice, end_slice) = (
-                        self.content.get(0..start_offset as usize).unwrap_or(""),
-                        self.content.get(end_offset as usize..).unwrap_or(""),
-                    );
-                    self.content = start_slice
-                        .chars()
-                        .chain(text.chars())
-                        .chain(end_slice.chars())
-                        .collect();
+                    self.content
+                        .replace_range((start_offset as usize)..(end_offset as usize), &text);
 
                     let (start_line, end_line) = (start.line, end.line);
                     assert!(start_line <= end_line);
-                    let added_line_offsets =
-                        computed_line_offsets(&text, false, Some(start_offset));
+                    let added_line_offsets = computed_line_offsets(text, false, Some(start_offset));
 
                     self.line_offsets = self
                         .line_offsets
@@ -106,7 +98,7 @@ impl FullTextDocument {
                                 .get((end_line + 1) as usize..)
                                 .unwrap_or(&[]),
                         )
-                        .map(|&x| x)
+                        .copied()
                         .collect::<Vec<_>>();
 
                     let diff =
@@ -125,7 +117,7 @@ impl FullTextDocument {
                 None => {
                     // Full Text
                     // update line_offsets
-                    self.line_offsets = computed_line_offsets(&text, true, None);
+                    self.line_offsets = computed_line_offsets(text, true, None);
 
                     // update content
                     self.content = text.to_owned();
@@ -264,8 +256,8 @@ impl FullTextDocument {
         match self.get_line_and_offset(line) {
             Some((line, offset)) => {
                 let mut c = 0;
-                let mut iter = line.char_indices();
-                while let Some((idx, char)) = iter.next() {
+                let iter = line.char_indices();
+                for (idx, char) in iter {
                     if c == character {
                         return offset + idx as u32;
                     }
